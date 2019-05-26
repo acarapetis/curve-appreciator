@@ -1,6 +1,6 @@
 let props = {
     smoothing: 1,
-    smoothingsamples: 40,
+    smoothingsamples: 20,
     dotcolor: 'black',
     dotopacity: 1,
     dotradius: 10,
@@ -44,6 +44,8 @@ let path = null
 let dot = null
 let curvature = null
 let tween = null
+let pathLayer = null
+let dotLayer = null
 let speed = k => 10 / (1 + Math.abs(k*10000))
 
 let canvas = document.getElementById('canvas')
@@ -81,37 +83,38 @@ function loadSVG(file) {
         canvas.height = bounds.height
         document.getElementById('gobutton').disabled = false
         let paths = project.getItems({ class: Path })
+        pathLayer = new Layer()
+        dotLayer = new Layer()
         app.set('path', paths[0])
-        new Layer()
     })
 }
 
 function startAnimation() {
     cancelAnimation()
-    let integrand = curvature.map((x,k) => 1/(speed(k)))
-    let times = delay(integrand, curvature.domain)
+
     if (dot) dot.remove()
+    dotLayer.activate()
     dot = new Path.Circle(path.getPointAt(0), props.dotradius)
     dot.fillColor = new Color(props.dotcolor)
     dot.fillColor.alpha = props.dotopacity
     window.dot=dot
 
-    let i = 0;
+    let s = 0;
+    let lastT = Date.now()
     function anim() {
         if (!dot) return
-        const next = path.getPointAt(curvature.domain[i + 1])
+        const next = path.getPointAt(s)
         if (next) {
-            tween = dot.tweenTo(
-                { position: next },
-                times[i]
-            )
-            i++
-            tween.then(anim)
+            dot.position = next
+            const now = Date.now()
+            s += speed(curvature.eval(s)) * (now - lastT)
+            lastT = now
+            requestAnimationFrame(anim)
         } else {
             cancelAnimation()
         }
     }
-    anim()
+    requestAnimationFrame(anim)
 }
 
 function cancelAnimation() {
@@ -123,6 +126,7 @@ function cancelAnimation() {
 function renderPath() {
     for (d of plot) d.remove()
     if (!path) return
+    pathLayer.activate()
     if (props.curvaturecolor) {
         plot = plotAlongPath(path, curvature)
         path.strokeWidth = 0
@@ -161,7 +165,7 @@ function update(changes={}) {
         }
     }
     if (changed('speedmul','speeddrop')) {
-        speed = k => props.speedmul / (1 + Math.abs(k*100 * props.speeddrop))
+        speed = k => 0.1 * props.speedmul / (1 + Math.abs(k*100 * props.speeddrop))
         app.speed = speed
     }
 }
