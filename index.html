@@ -16,49 +16,150 @@
                 overflow: hidden;
                 display: flex;
                 flex-direction: row;
+                position: relative;
             }
             #canvas {
-                flex-grow: 1;
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                border: 1px solid black;
+                box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
             }
             #controls {
+                position: absolute;
+                background: white;
+                border: 1px solid #ccc;
+                box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
             }
             #controls label {
                 margin: 10px;
                 display: block;
+                white-space: nowrap;
+                overflow-x: hidden;
+                text-overflow: ellipsis;
+            }
+            #controls label > * {
+                vertical-align: middle;
+            }
+            #controls h2 {
+                cursor: move;
+                padding: 5px 8px;
+                margin: 0;
+                font-size: 16px;
+                background: #eee;
+                border-bottom: 1px solid #ccc;
             }
             input[type=range], input[type=checkbox] {
                 margin-right: 10px;
             }
+            fieldset {
+                margin: 5px;
+                border: 1px solid #ccc;
+            }
         </style>
     </head>
     <body>
-        <canvas id=canvas ondrop="app.handleDrop(event)" ondragover="event.preventDefault()"></canvas>
-        <div id=controls onchange="app.readControl(event.target)">
-            <label>
-                <input type=range min=0 max=50 name=smoothing>
-                <span>Smoothing coefficient</span>
-            </label>
-            <label>
-                <input type=range min=10 max=200 name=smoothingsamples>
-                <span>Smoothing samples</span>
-            </label>
-            <label>
-                <input type=color name=dotcolor value=#cc0000>
-                <span>Dot Color</span>
-            </label>
-            <label>
-                <input type=range name=dotopacity step=0.05 min=0 max=1 value=1>
-                <span>Dot Opacity</span>
-            </label>
-            <label>
-                <input type=range name=dotradius step=1 min=1 max=20 value=10>
-                <span>Dot Radius</span>
-            </label>
+        <canvas id=canvas width=720 height=480
+            ondrop="app.handleDrop(event)" ondragover="event.preventDefault()"></canvas>
+        <div id=controls style="right:0; top:0;" onchange="app.readControl(event.target)">
+            <h2>
+                Controls
+            </h2>
+            <fieldset>
+                <legend>Curvature and Motion</legend>
+                <label>
+                    <input type=range min=50 max=1000 value=300 name=samples>
+                    <span>Sample density</span>
+                </label>
+                <label>
+                    <input type=range min=0 max=500 value=20 name=smoothing>
+                    <span>Curvature smoothing</span>
+                </label>
+                <label>
+                    <input type=range min=1 max=200 value=10 name=speedmul>
+                    <span>Speed multiplier</span>
+                </label>
+                <label>
+                    <input type=range min=10 max=1000 value=100 name=speeddrop>
+                    <span>Speed dropoff</span>
+                </label>
+            </fieldset>
+            <fieldset>
+                <legend>Appearance</legend>
+                <label>
+                    <input type=color name=dotcolor value=#cc0000>
+                    <span>Dot Color</span>
+                </label>
+                <label>
+                    <input type=range name=dotopacity step=0.05 min=0 max=1 value=1>
+                    <span>Dot Opacity</span>
+                </label>
+                <label>
+                    <input type=range name=dotradius step=1 min=1 max=20 value=10>
+                    <span>Dot Radius</span>
+                </label>
+                <label>
+                    <input type=checkbox name=curvaturecolor checked>
+                    <span>Color path by curvature</span>
+                </label>
+                <label>
+                    <input type=color name=pathcolor value=#000000>
+                    <span>Path Color</span>
+                </label>
+                <label>
+                    <input type=range name=pathopacity step=0.05 min=0 max=1 value=1>
+                    <span>Path Opacity</span>
+                </label>
+                <label>
+                    <input type=range name=pathwidth step=1 min=0 max=20 value=3>
+                    <span>Path Thickness</span>
+                </label>
+            </fieldset>
             <label>
                 <button disabled id=gobutton type=button onclick="app.go()">Go</button>
                 <button id=stopbutton type=button onclick="app.stop()">Stop</button>
             </label>
         </div>
         <script async type="text/paperscript" canvas="canvas" src="main.js"> </script>
+        <script>
+            // Make the DIV element draggable:
+            dragElement(document.getElementById("controls"));
+
+            function dragElement(elmnt) {
+                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                elmnt.querySelector("h2").onmousedown = dragMouseDown;
+
+                function dragMouseDown(e) {
+                    e.preventDefault();
+                    // get the mouse cursor position at startup:
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    elmnt.style.top = elmnt.offsetTop + 'px';
+                    elmnt.style.left = elmnt.offsetLeft + 'px';
+                    elmnt.style.right = null;
+                    document.onmouseup = closeDragElement;
+                    // call a function whenever the cursor moves:
+                    document.onmousemove = elementDrag;
+                }
+
+                function elementDrag(e) {
+                    e.preventDefault();
+                    // calculate the new cursor position:
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    // set the element's new position:
+                    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                }
+
+                function closeDragElement() {
+                    // stop moving when mouse button is released:
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+            }
+        </script>
     </body>
 </html>

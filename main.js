@@ -1,9 +1,16 @@
 let props = {
     smoothing: 1,
-    smoothingsamples: 10,
+    smoothingsamples: 40,
     dotcolor: 'black',
     dotopacity: 1,
     dotradius: 10,
+    samples: 100,
+    speedmul: 10,
+    speeddrop: 100,
+    curvaturecolor: true,
+    pathcolor: 'black',
+    pathwidth: 5,
+    pathopacity: 1,
 }
 app = {
     set(k,v) {
@@ -20,12 +27,16 @@ app = {
     handleDrop(e) { handleDrop(e) },
 
     readControl(el) {
-        if ('value' in el) {
+        if (el.type == 'checkbox') {
+            app.set(el.name, !!el.checked)
+        }
+        else if ('value' in el) {
             app.set(el.name, el.value)
         }
     },
 }
 window.app = app // For UI to call app methods
+app.props = props
 app.project = project
 
 let plot = []
@@ -33,6 +44,8 @@ let path = null
 let dot = null
 let curvature = null
 let tween = null
+let speed = k => 10 / (1 + Math.abs(k*10000))
+
 let canvas = document.getElementById('canvas')
 
 function init() {
@@ -62,8 +75,11 @@ function loadSVG(file) {
     (new Response(file)).text().then(svg => {
         project.clear()
         project.importSVG(svg)
+        const bounds = project.activeLayer.bounds
+        canvas.width = bounds.width
+        canvas.height = bounds.height
         document.getElementById('gobutton').disabled = false
-        let paths = project.getItems({ class: Path });
+        let paths = project.getItems({ class: Path })
         app.set('path', paths[0])
         new Layer()
     })
@@ -89,8 +105,10 @@ function startAnimation() {
                 times[i]
             )
             i++
+            tween.then(anim)
+        } else {
+            cancelAnimation()
         }
-        if (i < SAMPLES) tween.then(anim)
     }
     anim()
 }
@@ -101,22 +119,49 @@ function cancelAnimation() {
     dot = null
 }
 
+function renderPath() {
+    for (d of plot) d.remove()
+    if (!path) return
+    if (props.curvaturecolor) {
+        plot = plotAlongPath(path, curvature)
+        path.strokeWidth = 0
+    } else {
+        path.strokeWidth = props.pathwidth
+        path.strokeColor = props.pathcolor
+        path.strokeColor.alpha = props.pathopacity
+    }
+}
+
 function update(changes={}) {
-    SAMPLES=300
     changed = (...ary) => ary.some(x => x in changes)
 
     if (changed('path')) {
         path = props.path
         app.path = path
     }
-    if (changed('path','smoothingsamples','smoothing')) {
+    if (changed('path','samples','smoothingsamples','smoothing')) {
         if (!path) return
-        curvature = sampleCurvature(path, SAMPLES)
+        curvature = sampleCurvature(path, props.samples)
         if (props.smoothing != 0)
             curvature = curvature.smooth(1/props.smoothing, props.smoothingsamples)
 
-        for (d of plot) d.remove()
-        plot = plotAlongPath(path, curvature)
+        renderPath()
+    }
+    if (changed('curvaturecolor','pathcolor','pathwidth','pathopacity')) {
+        renderPath()
+    }
+    if (dot) {
+        if (changed('dotcolor','dotopacity')) {
+            dot.fillColor = new Color(props.dotcolor)
+            dot.fillColor.alpha = props.dotopacity
+        }
+        if (changed('dotradius')) {
+            dot.scale(props.dotradius/changes.dotradius)
+        }
+    }
+    if (changed('speedmul','speeddrop')) {
+        speed = k => props.speedmul / (1 + Math.abs(k*100 * props.speeddrop))
+        app.speed = speed
     }
 }
 
@@ -128,10 +173,10 @@ function sampleCurvature(path, samples=200) {
     return new Fn(domain, s => path.getCurvatureAt(s))
 }
 
-function plotAlongPath(path, fn, dotSize=3, colorFunction=curvatureColor) {
+function plotAlongPath(path, fn, colorFunction=curvatureColor) {
     return fn.map((s, y) => {
         const p = path.getPointAt(s)
-        const dot = new Path.Circle(p, dotSize)
+        const dot = new Path.Circle(p, props.pathwidth)
         dot.fillColor = colorFunction(y)
         return dot
     })
@@ -143,8 +188,6 @@ function curvatureColor(k) {
     const t = 1 / (1 + Math.abs(k*100))
     return black * t + red * (1-t)
 }
-
-const speed = k => 10 / (1 + Math.abs(k*10000))
 
 function range(a,b) {
     if (b !== undefined) {
@@ -182,8 +225,10 @@ class Fn {
         return y1 + ((x-x1)/(x2-x1))*(y2-y1)
     }
     
-    smooth(k, samples=100) {
-        const f = x => Math.exp(-k*x*x)
+    smooth(k, samples=10) {
+        const resolution = this.domain[1] - this.domain[0] // TODO
+        const mult = Math.pow(resolution/samples,2)
+        const f = x => Math.exp(-k*x*x*mult)
         let kernel = interval(-samples, samples, 2*samples + 1).map(f)
         const sum = kernel.reduce((a,b) => a+b)
         kernel = kernel.map(x => x/sum)
@@ -222,5 +267,3 @@ function delay(ary, domain) {
         //.reduce((total, x, i) => cumulative[i] = total + x, 0)
     //return cumulative
 }
-window.speed = speed
-window.Fn = Fn
