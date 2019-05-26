@@ -43,7 +43,7 @@
             }
             #controls h2 {
                 cursor: move;
-                padding: 5px 8px;
+                padding: 5px 8px 3px 8px;
                 margin: 0;
                 font-size: 16px;
                 background: #eee;
@@ -61,7 +61,7 @@
     <body>
         <canvas id=canvas width=720 height=480
             ondrop="app.handleDrop(event)" ondragover="event.preventDefault()"></canvas>
-        <div id=controls style="right:0; top:0;" onchange="app.readControl(event.target)">
+        <div id=controls style="right:10px; top:10px;" onchange="app.readControl(event.target)" hidden>
             <h2>
                 Controls
             </h2>
@@ -76,11 +76,11 @@
                     <span>Curvature smoothing</span>
                 </label>
                 <label>
-                    <input type=range min=1 max=200 value=10 name=speedmul>
+                    <input type=range min=1 max=20 value=10 name=speedmul>
                     <span>Speed multiplier</span>
                 </label>
                 <label>
-                    <input type=range min=10 max=1000 value=100 name=speeddrop>
+                    <input type=range min=0.5 max=30 value=10 step=0.1 name=speeddrop>
                     <span>Speed dropoff</span>
                 </label>
             </fieldset>

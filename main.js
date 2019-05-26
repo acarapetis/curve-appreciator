@@ -65,6 +65,7 @@ function handleDrop(e) {
     e.preventDefault()
     for (let item of e.dataTransfer.items || []) {
         if (item.kind === 'file') {
+            document.getElementById('controls').hidden = false
             loadSVG(item.getAsFile())
             return
         }
