@@ -78,9 +78,15 @@ function loadSVG(file) {
     (new Response(file)).text().then(svg => {
         project.clear()
         project.importSVG(svg)
+
+        // Resize canvas to SVG size
         const bounds = project.activeLayer.bounds
-        canvas.width = bounds.width
-        canvas.height = bounds.height
+        canvas.style.width = bounds.width + 'px'
+        canvas.style.height = bounds.height + 'px'
+
+        // Let Paper.js know that the canvas size has changed
+        window.dispatchEvent(new window.Event('resize'))
+
         document.getElementById('gobutton').disabled = false
         let paths = project.getItems({ class: Path })
         pathLayer = new Layer()
