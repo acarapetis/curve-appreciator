@@ -102,7 +102,7 @@ function startAnimation() {
     if (dot) dot.remove()
     dotLayer.activate()
     dot = new Path.Circle(path.getPointAt(0), props.dotradius)
-    dot.fillColor = new Color(props.dotcolor)
+    dot.fillColor = props.dotcolor
     dot.fillColor.alpha = props.dotopacity
     window.dot=dot
 
@@ -165,7 +165,7 @@ function update(changes={}) {
     }
     if (dot) {
         if (changed('dotcolor','dotopacity')) {
-            dot.fillColor = new Color(props.dotcolor)
+            dot.fillColor = props.dotcolor
             dot.fillColor.alpha = props.dotopacity
         }
         if (changed('dotradius')) {
@@ -178,9 +178,6 @@ function update(changes={}) {
     }
 }
 
-
-function onFrame() {}
-
 function sampleCurvature(path, samples=200) {
     let domain = interval(0, path.length, samples)
     return new Fn(domain, s => path.getCurvatureAt(s))
@@ -191,6 +188,7 @@ function plotAlongPath(path, fn, colorFunction=curvatureColor) {
         const p = path.getPointAt(s)
         const dot = new Path.Circle(p, props.pathwidth)
         dot.fillColor = colorFunction(y)
+        dot.fillColor.alpha = props.pathopacity
         return dot
     })
 }
@@ -216,6 +214,7 @@ function interval(start, end, samples) {
         .map(x => start + (end-start) * x/(samples-1))
 }
 
+// A scalar function sampled over a discrete domain.
 class Fn {
     constructor(domain, values) {
         this.domain = domain
@@ -228,6 +227,7 @@ class Fn {
         }
     }
 
+    // Linearly interpolate to approximate the value of this function at x.
     eval(x) {
         const i = d3.bisect(this.domain, x)
         const x1 = this.domain[i-1]
@@ -238,6 +238,7 @@ class Fn {
         return y1 + ((x-x1)/(x2-x1))*(y2-y1)
     }
     
+    // Return a smoothed version of this function (via Gaussian blur)
     smooth(k, samples=10) {
         const resolution = this.domain[1] - this.domain[0] // TODO
         const mult = Math.pow(resolution/samples,2)
@@ -265,18 +266,4 @@ class Fn {
     map(f) {
         return this.domain.map((x,i) => f(x, this.values[i]))
     }
-}
-
-function delay(ary, domain) {
-    const measures = domain.map((offset, i) => {
-        if (i == 0) 
-            return domain[1] - offset
-        if (i == domain.length-1) 
-            return offset - domain[domain.length-2]
-        return (domain[i+1] - domain[i-1])/2
-    })
-    //let cumulative = []
-    return domain.map((offset, i) => ary[i] * measures[i])
-        //.reduce((total, x, i) => cumulative[i] = total + x, 0)
-    //return cumulative
 }
