@@ -46,6 +46,7 @@ let curvature = null
 let tween = null
 let pathLayer = null
 let dotLayer = null
+let nextFrame = null
 let speed = k => 10 / (1 + Math.abs(k*10000))
 
 let canvas = document.getElementById('canvas')
@@ -115,17 +116,18 @@ function startAnimation() {
             const now = Date.now()
             s += speed(curvature.eval(s)) * (now - lastT)
             lastT = now
-            requestAnimationFrame(anim)
+            nextFrame = requestAnimationFrame(anim)
         } else {
             cancelAnimation()
         }
     }
-    requestAnimationFrame(anim)
+    nextFrame = requestAnimationFrame(anim)
 }
 
 function cancelAnimation() {
     if (tween) tween.stop()
     if (dot) dot.remove()
+    if (nextFrame) cancelAnimationFrame(nextFrame)
     dot = null
 }
 
