@@ -49,8 +49,17 @@
                 background: #eee;
                 border-bottom: 1px solid #ccc;
             }
-            input[type=range], input[type=checkbox] {
+            input[type=number],
+            input[type=checkbox],
+            input[type=color] {
                 margin-right: 10px;
+                width: 40px;
+            }
+            input[type=color][disabled] {
+                opacity: 0.5;
+            }
+            input[type=number] {
+                padding: 1px;
             }
             fieldset {
                 margin: 5px;
@@ -68,19 +77,19 @@
             <fieldset>
                 <legend>Curvature and Motion</legend>
                 <label>
-                    <input type=range min=50 max=1000 value=300 name=samples>
+                    <input type=number min=50 max=1000 value=300 name=samples>
                     <span>Sample density</span>
                 </label>
                 <label>
-                    <input type=range min=0 max=500 value=20 name=smoothing>
+                    <input type=number min=0 max=500 value=20 name=smoothing>
                     <span>Curvature smoothing</span>
                 </label>
                 <label>
-                    <input type=range min=1 max=20 value=10 name=speedmul>
-                    <span>Speed multiplier</span>
+                    <input type=number min=0.5 max=20 value=3 step=0.5 name=speedmul>
+                    <span>Speed</span>
                 </label>
                 <label>
-                    <input type=range min=0.5 max=30 value=10 step=0.1 name=speeddrop>
+                    <input type=number min=0.5 max=10 value=1 step=0.1 name=speeddrop>
                     <span>Speed dropoff</span>
                 </label>
             </fieldset>
@@ -91,27 +100,27 @@
                     <span>Dot Color</span>
                 </label>
                 <label>
-                    <input type=range name=dotopacity step=0.05 min=0 max=1 value=1>
+                    <input type=number name=dotopacity step=0.05 min=0 max=1 value=1>
                     <span>Dot Opacity</span>
                 </label>
                 <label>
-                    <input type=range name=dotradius step=1 min=1 max=20 value=10>
+                    <input type=number name=dotradius step=1 min=1 max=20 value=10>
                     <span>Dot Radius</span>
                 </label>
                 <label>
-                    <input type=checkbox name=curvaturecolor checked>
+                    <input type=checkbox name=curvaturecolor onclick="document.getElementById('pathcolor').disabled = !!event.currentTarget.checked" checked>
                     <span>Color path by curvature</span>
                 </label>
                 <label>
-                    <input type=color name=pathcolor value=#000000>
+                    <input id=pathcolor type=color name=pathcolor value=#000000 disabled>
                     <span>Path Color</span>
                 </label>
                 <label>
-                    <input type=range name=pathopacity step=0.05 min=0 max=1 value=1>
+                    <input type=number name=pathopacity step=0.05 min=0 max=1 value=1>
                     <span>Path Opacity</span>
                 </label>
                 <label>
-                    <input type=range name=pathwidth step=1 min=0 max=20 value=3>
+                    <input type=number name=pathwidth step=1 min=0 max=20 value=3>
                     <span>Path Thickness</span>
                 </label>
             </fieldset>
