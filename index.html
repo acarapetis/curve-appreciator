@@ -158,13 +158,6 @@
                 <button disabled id=gobutton type=button onclick="app.go()">Go</button>
                 <button id=stopbutton type=button onclick="app.stop()">Stop</button>
             </div>
-            <a id=scrot>scrot</a>
-            <script>
-                document.getElementById('scrot').addEventListener('click', e => {
-                    e.target.href = document.getElementById('canvas').toDataURL()
-                    e.target.download = 'scrot.png'
-                })
-            </script>
         </div>
         <script async type="text/paperscript" canvas="canvas" src="main.js"> </script>
         <script type="text/javascript" src="capture.js"></script>
