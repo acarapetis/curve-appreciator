@@ -1,5 +1,5 @@
 window.capture = {
-    startRecording(framerate) {
+    startRecording({ framerate }) {
         this.capturer = new CCapture({ 
             format: 'webm',
             framerate: framerate,

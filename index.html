@@ -32,6 +32,20 @@
                 border: 1px solid #ccc;
                 box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
             }
+            #controls main {
+                display: flex;
+                writing-mode: vertical-lr;
+                /* the line above makes this actually column! */
+                /* https://stackoverflow.com/questions/23408539/how-can-i-make-a-displayflex-container-expand-horizontally-with-its-wrapped-con/41209546#41209546 */
+                flex-direction: row; 
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                align-items: stretch;
+                max-height: 90vh;
+            }
+            #controls * {
+                writing-mode: horizontal-tb;
+            }
             #controls label, #controls div {
                 margin: 10px;
                 display: block;
@@ -75,89 +89,91 @@
             <h2>
                 Controls
             </h2>
-            <fieldset>
-                <legend>Curvature and Motion</legend>
-                <label>
-                    <input type=number min=50 max=1000 value=300 name=samples>
-                    <span>Sample density</span>
-                </label>
-                <label>
-                    <input type=number min=0 max=500 value=20 name=smoothing>
-                    <span>Curvature smoothing</span>
-                </label>
-                <label>
-                    <input type=number min=0.5 max=20 value=3 step=0.5 name=speedmul>
-                    <span>Speed</span>
-                </label>
-                <label>
-                    <input type=number min=0.5 max=10 value=1 step=0.1 name=speeddrop>
-                    <span>Speed dropoff</span>
-                </label>
-            </fieldset>
-            <fieldset>
-                <legend>Motion Direction</legend>
-                <label>
-                    <input type=radio name=direction value=forward checked>Forward
-                </label>
-                <label>
-                    <input type=radio name=direction value=backward>Reversed
-                </label>
-                <label>
-                    <input type=radio name=direction value=bounce>Bounce
-                </label>
-                <label>
-                    <input type=radio name=direction value=bouncerev>Bounce (Reversed)
-                </label>
-                <label>
-                    <input type=radio name=direction value=infinite>Bounce Forever
-                </label>
-            </fieldset>
-            <fieldset>
-                <legend>Appearance</legend>
-                <label>
-                    <input type=color name=dotcolor value=#cc0000>
-                    <span>Dot Color</span>
-                </label>
-                <label>
-                    <input type=number name=dotopacity step=0.05 min=0 max=1 value=1>
-                    <span>Dot Opacity</span>
-                </label>
-                <label>
-                    <input type=number name=dotradius step=1 min=1 max=20 value=10>
-                    <span>Dot Radius</span>
-                </label>
-                <label>
-                    <input type=checkbox name=curvaturecolor onclick="document.getElementById('pathcolor').disabled = !!event.currentTarget.checked" checked>
-                    <span>Color path by curvature</span>
-                </label>
-                <label>
-                    <input id=pathcolor type=color name=pathcolor value=#000000 disabled>
-                    <span>Path Color</span>
-                </label>
-                <label>
-                    <input type=number name=pathopacity step=0.05 min=0 max=1 value=1>
-                    <span>Path Opacity</span>
-                </label>
-                <label>
-                    <input type=number name=pathwidth step=1 min=0 max=20 value=3>
-                    <span>Path Thickness</span>
-                </label>
-            </fieldset>
-            <fieldset>
-                <legend>Recording</legend>
-                <label>
-                    <input type=checkbox name=record>
-                    <span>Enable</span>
-                </label>
-                <label>
-                    <input type=number name=framerate min=15 max=120 value=60>
-                    <span>Framerate</span>
-                </label>
-            </fieldset>
-            <div>
-                <button disabled id=gobutton type=button onclick="app.go()">Go</button>
-                <button id=stopbutton type=button onclick="app.stop()">Stop</button>
-            </div>
+            <main>
+                <fieldset>
+                    <legend>Curvature and Motion</legend>
+                    <label>
+                        <input type=number min=50 max=1000 value=300 name=samples>
+                        <span>Sample density</span>
+                    </label>
+                    <label>
+                        <input type=number min=0 max=500 value=20 name=smoothing>
+                        <span>Curvature smoothing</span>
+                    </label>
+                    <label>
+                        <input type=number min=0.5 max=20 value=3 step=0.5 name=speedmul>
+                        <span>Speed</span>
+                    </label>
+                    <label>
+                        <input type=number min=0.5 max=10 value=1 step=0.1 name=speeddrop>
+                        <span>Speed dropoff</span>
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <legend>Motion Direction</legend>
+                    <label>
+                        <input type=radio name=direction value=forward checked>Forward
+                    </label>
+                    <label>
+                        <input type=radio name=direction value=backward>Reversed
+                    </label>
+                    <label>
+                        <input type=radio name=direction value=bounce>Bounce
+                    </label>
+                    <label>
+                        <input type=radio name=direction value=bouncerev>Bounce (Reversed)
+                    </label>
+                    <label>
+                        <input type=radio name=direction value=infinite>Bounce Forever
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <legend>Appearance</legend>
+                    <label>
+                        <input type=color name=dotcolor value=#cc0000>
+                        <span>Dot Color</span>
+                    </label>
+                    <label>
+                        <input type=number name=dotopacity step=0.05 min=0 max=1 value=1>
+                        <span>Dot Opacity</span>
+                    </label>
+                    <label>
+                        <input type=number name=dotradius step=1 min=1 max=20 value=10>
+                        <span>Dot Radius</span>
+                    </label>
+                    <label>
+                        <input type=checkbox name=curvaturecolor onclick="document.getElementById('pathcolor').disabled = !!event.currentTarget.checked" checked>
+                        <span>Color path by curvature</span>
+                    </label>
+                    <label>
+                        <input id=pathcolor type=color name=pathcolor value=#000000 disabled>
+                        <span>Path Color</span>
+                    </label>
+                    <label>
+                        <input type=number name=pathopacity step=0.05 min=0 max=1 value=1>
+                        <span>Path Opacity</span>
+                    </label>
+                    <label>
+                        <input type=number name=pathwidth step=1 min=0 max=20 value=3>
+                        <span>Path Thickness</span>
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <legend>Recording</legend>
+                    <label>
+                        <input type=checkbox name=record>
+                        <span>Enable</span>
+                    </label>
+                    <label>
+                        <input type=number name=framerate min=15 max=120 value=60>
+                        <span>Framerate</span>
+                    </label>
+                </fieldset>
+                <div>
+                    <button disabled id=gobutton type=button onclick="app.go()">Go</button>
+                    <button id=stopbutton type=button onclick="app.stop()">Stop</button>
+                </div>
+            </main>
         </div>
         <script async type="text/paperscript" canvas="canvas" src="main.js"> </script>
         <script type="text/javascript" src="capture.js"></script>

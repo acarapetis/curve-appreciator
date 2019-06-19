@@ -14,6 +14,7 @@ let props = {
     direction: 'forward',
     framerate: 60,
     record: false,
+    quality: 95,
 }
 const app = {
     set(k,v) {
@@ -135,7 +136,7 @@ function startAnimation() {
     window.dot=dot
 
     if (props.record) {
-        window.capture.startRecording(props.framerate)
+        window.capture.startRecording(props)
         window.capture.captureFrame()
     }
 
