@@ -5,6 +5,7 @@
         <!-- custom acorn version to enable ES2015 support in paperscript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/4.0.11/acorn.js"></script>
         <script src="https://unpkg.com/paper@0.12.0/dist/paper-full.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/spite/ccapture.js@e66f7bd12c0cfd2c27ce844fcfa8d0dad15ff188/build/CCapture.all.min.js"></script>
         <script src="https://d3js.org/d3-array.v2.min.js"></script>
         <style>
             body, html {
@@ -31,14 +32,14 @@
                 border: 1px solid #ccc;
                 box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
             }
-            #controls label {
+            #controls label, #controls div {
                 margin: 10px;
                 display: block;
                 white-space: nowrap;
                 overflow-x: hidden;
                 text-overflow: ellipsis;
             }
-            #controls label > * {
+            #controls label > *, #controls div > * {
                 vertical-align: middle;
             }
             #controls h2 {
@@ -94,6 +95,24 @@
                 </label>
             </fieldset>
             <fieldset>
+                <legend>Motion Direction</legend>
+                <label>
+                    <input type=radio name=direction value=forward checked>Forward
+                </label>
+                <label>
+                    <input type=radio name=direction value=backward>Reversed
+                </label>
+                <label>
+                    <input type=radio name=direction value=bounce>Bounce
+                </label>
+                <label>
+                    <input type=radio name=direction value=bouncerev>Bounce (Reversed)
+                </label>
+                <label>
+                    <input type=radio name=direction value=infinite>Bounce Forever
+                </label>
+            </fieldset>
+            <fieldset>
                 <legend>Appearance</legend>
                 <label>
                     <input type=color name=dotcolor value=#cc0000>
@@ -124,12 +143,31 @@
                     <span>Path Thickness</span>
                 </label>
             </fieldset>
-            <label>
+            <fieldset>
+                <legend>Recording</legend>
+                <label>
+                    <input type=checkbox name=record>
+                    <span>Enable</span>
+                </label>
+                <label>
+                    <input type=number name=framerate min=15 max=120 value=60>
+                    <span>Framerate</span>
+                </label>
+            </fieldset>
+            <div>
                 <button disabled id=gobutton type=button onclick="app.go()">Go</button>
                 <button id=stopbutton type=button onclick="app.stop()">Stop</button>
-            </label>
+            </div>
+            <a id=scrot>scrot</a>
+            <script>
+                document.getElementById('scrot').addEventListener('click', e => {
+                    e.target.href = document.getElementById('canvas').toDataURL()
+                    e.target.download = 'scrot.png'
+                })
+            </script>
         </div>
         <script async type="text/paperscript" canvas="canvas" src="main.js"> </script>
+        <script type="text/javascript" src="capture.js"></script>
         <script>
             // Make the DIV element draggable:
             dragElement(document.getElementById("controls"));

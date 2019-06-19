@@ -11,12 +11,15 @@ let props = {
     pathcolor: 'black',
     pathwidth: 5,
     pathopacity: 1,
+    direction: 'forward',
+    framerate: 60,
+    record: false,
 }
-app = {
+const app = {
     set(k,v) {
         let old = props[k]
         if (old != v) {
-            changes = {[k]: props[k]}
+            const changes = {[k]: props[k]}
             props[k] = v
             update(changes)
         }
@@ -41,19 +44,22 @@ app.project = project
 
 let plot = []
 let path = null
+let pathLength = null
 let dot = null
 let curvature = null
 let tween = null
 let pathLayer = null
 let dotLayer = null
 let nextFrame = null
+let capturer = null
 let speed = k => 10 / (1 + Math.abs(k*10000))
 
 let canvas = document.getElementById('canvas')
 
 function init() {
     for (let el of document.querySelectorAll('#controls input')) {
-        app.readControl(el)
+        if (el.type != 'radio' || el.checked)
+            app.readControl(el)
     }
 
     let text = new PointText(new Point(50, 50))
@@ -99,22 +105,53 @@ function loadSVG(file) {
 function startAnimation() {
     cancelAnimation()
 
+    function position(t) {
+        const l = pathLength
+        switch(app.props.direction) {
+            case 'forward':
+                return t
+            case 'backward':
+                return l - t
+            case 'infinite':
+                t = t % (2*l)
+            case 'bounce':
+                if (t < l) 
+                    return t
+                else
+                    return 2 * l - t
+            case 'bouncerev':
+                if (t < l) 
+                    return l - t
+                else
+                    return t - l
+        }
+    }
+
     if (dot) dot.remove()
     dotLayer.activate()
-    dot = new Path.Circle(path.getPointAt(0), props.dotradius)
+    dot = new Path.Circle(path.getPointAt(position(0)), props.dotradius)
     dot.fillColor = props.dotcolor
     dot.fillColor.alpha = props.dotopacity
     window.dot=dot
 
-    let s = 0;
-    let lastT = Date.now()
+    if (props.record) {
+        window.capture.startRecording(props.framerate)
+        window.capture.captureFrame()
+    }
+
+    let t = 0;
+    let lastT = performance.now()
     function anim() {
         if (!dot) return
-        const next = path.getPointAt(s)
+        if (props.record) {
+            window.capture.captureFrame()
+        }
+        let s = position(t)
+        const next = s >= 0 && path.getPointAt(s)
         if (next) {
             dot.position = next
-            const now = Date.now()
-            s += speed(curvature.eval(s)) * (now - lastT)
+            const now = performance.now()
+            t += speed(curvature.eval(s)) * (now - lastT)
             lastT = now
             nextFrame = requestAnimationFrame(anim)
         } else {
@@ -125,6 +162,7 @@ function startAnimation() {
 }
 
 function cancelAnimation() {
+    window.capture.stopRecording()
     if (tween) tween.stop()
     if (dot) dot.remove()
     if (nextFrame) cancelAnimationFrame(nextFrame)
@@ -150,6 +188,7 @@ function update(changes={}) {
 
     if (changed('path')) {
         path = props.path
+        pathLength = path.length
         app.path = path
     }
     if (changed('path','samples','smoothingsamples','smoothing')) {
@@ -186,7 +225,7 @@ function sampleCurvature(path, samples=200) {
 function plotAlongPath(path, fn, colorFunction=curvatureColor) {
     return fn.map((s, y) => {
         const p = path.getPointAt(s)
-        const dot = new Path.Circle(p, props.pathwidth)
+        const dot = new Path.Circle(p, props.pathwidth/2)
         dot.fillColor = colorFunction(y)
         dot.fillColor.alpha = props.pathopacity
         return dot
@@ -229,10 +268,15 @@ class Fn {
 
     // Linearly interpolate to approximate the value of this function at x.
     eval(x) {
+        if (x <= this.domain[0]) return this.domain[0]
+        if (x >= this.domain[this.domain.length - 1]) return this.domain[this.domain.length - 1]
         const i = d3.bisect(this.domain, x)
         const x1 = this.domain[i-1]
         const x2 = this.domain[i]
-        if (!(x1 <= x && x <= x2)) throw new Error('Bisection failed')
+        if (!(x1 <= x && x <= x2)) {
+            console.log({x1,x2,x,i})
+            throw new Error('Bisection failed')
+        }
         const y1 = this.values[i-1]
         const y2 = this.values[i]
         return y1 + ((x-x1)/(x2-x1))*(y2-y1)
@@ -260,7 +304,7 @@ class Fn {
             }
             out[i] = acc
         }
-        return new Fn(this.domain, out)
+        return new Fn([...this.domain], out)
     }
     
     map(f) {
