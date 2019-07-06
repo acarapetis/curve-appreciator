@@ -28,10 +28,26 @@ const app = {
     },
 
     saveToClipboard() {
-        navigator.clipboard.writeText(this.save())
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(this.save())
+        }
+        else if (!window.isSecureContext) {
+            window.alert("Clipboard functionality only works in secure mode. Replace http with https in the address bar.")
+        }
+        else {
+            window.alert("Your browser does not support clipboard functionality.")
+        }
     },
     async loadFromClipboard() {
-        this.load(await navigator.clipboard.readText())
+        if (navigator.clipboard) {
+            this.load(await navigator.clipboard.readText())
+        }
+        else if (!window.isSecureContext) {
+            window.alert("Clipboard functionality only works in secure mode. Replace http with https in the address bar.")
+        }
+        else {
+            window.alert("Your browser does not support clipboard functionality.")
+        }
     },
     save() {
         let payload = {...props}
