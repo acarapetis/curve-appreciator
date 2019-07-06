@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>Bezier Demo</title>
-        <!-- custom acorn version to enable ES2015 support in paperscript -->
+        <!-- custom acorn version to enable ES6+ support in paperscript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/6.2.0/acorn.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.2/paper-full.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/spite/ccapture.js@v1.0.9/build/CCapture.all.min.js"></script>
@@ -87,6 +87,14 @@
                 margin: 5px;
                 border: 1px solid #ccc;
             }
+
+            #controls.simple #details {
+                display: none;
+            }
+
+            #controls section {
+                display: contents;
+            }
         </style>
     </head>
     <body>
@@ -95,97 +103,99 @@
         <div id=controls style="right:10px; top:10px;" onchange="app.readControl(event.target)">
             <h2>
                 Controls
-                <a onclick="document.getElementById('controls').classList.toggle('hidden')">(toggle)</a>
+                <a onclick="document.getElementById('controls').classList.toggle('simple')">(toggle)</a>
             </h2>
             <main>
-                <div>
-                    <button onclick="app.saveToClipboard()">Copy settings</button>
-                    <button onclick="app.loadFromClipboard()">Paste settings</button>
-                    <button onclick="app.resetConfig()">Reset to defaults</button>
-                </div>
-                <fieldset>
-                    <legend>Curvature and Motion</legend>
-                    <label>
-                        <input type=number min=50 max=1000 value=300 name=samples>
-                        <span>Sample density</span>
-                    </label>
-                    <label>
-                        <input type=number min=0 max=500 value=20 name=smoothing>
-                        <span>Curvature smoothing</span>
-                    </label>
-                    <label>
-                        <input type=number min=0.5 max=20 value=3 step=0.5 name=speedmul>
-                        <span>Speed</span>
-                    </label>
-                    <label>
-                        <input type=number min=0.5 max=10 value=1 step=0.1 name=speeddrop>
-                        <span>Speed dropoff</span>
-                    </label>
-                    <label>
-                        <input type=number min=0 max=10 value=0 step=0.1 name=curvaturezero>
-                        <span>Zero Curvature Threshold</span>
-                    </label>
-                </fieldset>
-                <fieldset>
-                    <legend>Motion Direction</legend>
-                    <label>
-                        <input type=radio name=direction value=forward checked>Forward
-                    </label>
-                    <label>
-                        <input type=radio name=direction value=backward>Reversed
-                    </label>
-                    <label>
-                        <input type=radio name=direction value=bounce>Bounce
-                    </label>
-                    <label>
-                        <input type=radio name=direction value=bouncerev>Bounce (Reversed)
-                    </label>
-                    <label>
-                        <input type=radio name=direction value=infinite>Bounce Forever
-                    </label>
-                </fieldset>
-                <fieldset>
-                    <legend>Appearance</legend>
-                    <label>
-                        <input type=color name=dotcolor value=#cc0000>
-                        <span>Dot Color</span>
-                    </label>
-                    <label>
-                        <input type=number name=dotopacity step=0.05 min=0 max=1 value=1>
-                        <span>Dot Opacity</span>
-                    </label>
-                    <label>
-                        <input type=number name=dotradius step=1 min=1 max=20 value=10>
-                        <span>Dot Radius</span>
-                    </label>
-                    <label>
-                        <input type=checkbox name=curvaturecolor onclick="document.getElementById('pathcolor').disabled = !!event.currentTarget.checked" checked>
-                        <span>Color path by curvature</span>
-                    </label>
-                    <label>
-                        <input id=pathcolor type=color name=pathcolor value=#000000 disabled>
-                        <span>Path Color</span>
-                    </label>
-                    <label>
-                        <input type=number name=pathopacity step=0.05 min=0 max=1 value=1>
-                        <span>Path Opacity</span>
-                    </label>
-                    <label>
-                        <input type=number name=pathwidth step=1 min=0 max=20 value=3>
-                        <span>Path Thickness</span>
-                    </label>
-                </fieldset>
-                <fieldset>
-                    <legend>Recording</legend>
-                    <label>
-                        <input type=checkbox name=record>
-                        <span>Enable</span>
-                    </label>
-                    <label>
-                        <input type=number name=framerate min=15 max=120 value=60>
-                        <span>Framerate</span>
-                    </label>
-                </fieldset>
+                <section id=details>
+                    <div>
+                        <button onclick="app.saveToClipboard()">Copy settings</button>
+                        <button onclick="app.loadFromClipboard()">Paste settings</button>
+                        <button onclick="app.resetConfig()">Reset to defaults</button>
+                    </div>
+                    <fieldset>
+                        <legend>Curvature and Motion</legend>
+                        <label>
+                            <input type=number min=50 max=1000 value=300 name=samples>
+                            <span>Sample density</span>
+                        </label>
+                        <label>
+                            <input type=number min=0 max=500 value=20 name=smoothing>
+                            <span>Curvature smoothing</span>
+                        </label>
+                        <label>
+                            <input type=number min=0.5 max=20 value=3 step=0.5 name=speedmul>
+                            <span>Speed</span>
+                        </label>
+                        <label>
+                            <input type=number min=0.5 max=10 value=1 step=0.1 name=speeddrop>
+                            <span>Speed dropoff</span>
+                        </label>
+                        <label>
+                            <input type=number min=0 max=10 value=0 step=0.1 name=curvaturezero>
+                            <span>Zero Curvature Threshold</span>
+                        </label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Motion Direction</legend>
+                        <label>
+                            <input type=radio name=direction value=forward checked>Forward
+                        </label>
+                        <label>
+                            <input type=radio name=direction value=backward>Reversed
+                        </label>
+                        <label>
+                            <input type=radio name=direction value=bounce>Bounce
+                        </label>
+                        <label>
+                            <input type=radio name=direction value=bouncerev>Bounce (Reversed)
+                        </label>
+                        <label>
+                            <input type=radio name=direction value=infinite>Bounce Forever
+                        </label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Appearance</legend>
+                        <label>
+                            <input type=color name=dotcolor value=#cc0000>
+                            <span>Dot Color</span>
+                        </label>
+                        <label>
+                            <input type=number name=dotopacity step=0.05 min=0 max=1 value=1>
+                            <span>Dot Opacity</span>
+                        </label>
+                        <label>
+                            <input type=number name=dotradius step=1 min=1 max=20 value=10>
+                            <span>Dot Radius</span>
+                        </label>
+                        <label>
+                            <input type=checkbox name=curvaturecolor onclick="document.getElementById('pathcolor').disabled = !!event.currentTarget.checked" checked>
+                            <span>Color path by curvature</span>
+                        </label>
+                        <label>
+                            <input id=pathcolor type=color name=pathcolor value=#000000 disabled>
+                            <span>Path Color</span>
+                        </label>
+                        <label>
+                            <input type=number name=pathopacity step=0.05 min=0 max=1 value=1>
+                            <span>Path Opacity</span>
+                        </label>
+                        <label>
+                            <input type=number name=pathwidth step=1 min=0 max=20 value=3>
+                            <span>Path Thickness</span>
+                        </label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Recording</legend>
+                        <label>
+                            <input type=checkbox name=record>
+                            <span>Enable</span>
+                        </label>
+                        <label>
+                            <input type=number name=framerate min=15 max=120 value=60>
+                            <span>Framerate</span>
+                        </label>
+                    </fieldset>
+                </section>
                 <div>
                     <button disabled id=gobutton type=button onclick="app.go()">Go</button>
                     <button id=stopbutton type=button onclick="app.stop()">Stop</button>
