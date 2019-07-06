@@ -7,6 +7,7 @@ let props = {
     samples: 100,
     speedmul: 10,
     speeddrop: 100,
+    curvaturezero: 1,
     curvaturecolor: true,
     pathcolor: 'black',
     pathwidth: 5,
@@ -14,8 +15,8 @@ let props = {
     direction: 'forward',
     framerate: 60,
     record: false,
-    quality: 95,
 }
+let ignoreProps = ['path','smoothingsamples'] // don't save these
 const app = {
     set(k,v) {
         let old = props[k]
@@ -26,18 +27,69 @@ const app = {
         }
     },
 
+    saveToClipboard() {
+        navigator.clipboard.writeText(this.save())
+    },
+    async loadFromClipboard() {
+        this.load(await navigator.clipboard.readText())
+    },
+    save() {
+        let payload = {...props}
+        for (let k of ignoreProps) delete payload[k]
+        return JSON.stringify(payload, null, 2)
+    },
+    load(str) {
+        const payload = JSON.parse(str)
+        this.props = props = { ...props, ...payload }
+        update(props)
+        Object.keys(payload).forEach(this.setControl)
+    },
+
     go() { startAnimation() },
     stop() { cancelAnimation() },
     handleDrop(e) { handleDrop(e) },
 
     readControl(el) {
+        if (!el) return
         if (el.type == 'checkbox') {
             app.set(el.name, !!el.checked)
+        }
+        else if (el.type == 'number') {
+            app.set(el.name, Number(el.value))
         }
         else if ('value' in el) {
             app.set(el.name, el.value)
         }
     },
+
+    setControl(key) {
+        const el = document.querySelector(`*[name="${key}"]`)
+        if (el.type == 'checkbox') {
+            el.checked = props[key]
+        }
+        else if ('value' in el) {
+            el.value = props[key]
+        }
+    },
+
+    resetConfig() {
+        resetToDefaults()
+    }
+}
+function savePropsToStorage() {
+    localStorage.setItem('curve-appreciator-config', app.save())
+}
+function loadPropsFromStorage() {
+    const conf = localStorage.getItem('curve-appreciator-config')
+    if (conf) {
+        app.load(conf)
+        return true
+    }
+    return false
+}
+function resetToDefaults() {
+    localStorage.removeItem('curve-appreciator-config')
+    window.location.reload()
 }
 window.app = app // For UI to call app methods
 app.props = props
@@ -58,9 +110,11 @@ let speed = k => 10 / (1 + Math.abs(k*10000))
 let canvas = document.getElementById('canvas')
 
 function init() {
-    for (let el of document.querySelectorAll('#controls input')) {
-        if (el.type != 'radio' || el.checked)
-            app.readControl(el)
+    if (!loadPropsFromStorage()) {
+        for (let el of document.querySelectorAll('#controls input')) {
+            if (el.type != 'radio' || el.checked)
+                app.readControl(el)
+        }
     }
 
     let text = new PointText(new Point(50, 50))
@@ -75,32 +129,31 @@ function handleDrop(e) {
     e.preventDefault()
     for (let item of e.dataTransfer.items || []) {
         if (item.kind === 'file') {
-            document.getElementById('controls').hidden = false
             loadSVG(item.getAsFile())
             return
         }
     }
 }
 
-function loadSVG(file) {
-    (new Response(file)).text().then(svg => {
-        project.clear()
-        project.importSVG(svg)
+async function loadSVG(file) {
+    const svg = await new Response(file).text()
 
-        // Resize canvas to SVG size
-        const bounds = project.activeLayer.bounds
-        canvas.style.width = bounds.width + 'px'
-        canvas.style.height = bounds.height + 'px'
+    project.clear()
+    project.importSVG(svg)
 
-        // Let Paper.js know that the canvas size has changed
-        window.dispatchEvent(new window.Event('resize'))
+    // Resize canvas to SVG size
+    const bounds = project.activeLayer.bounds
+    canvas.style.width = bounds.width + 'px'
+    canvas.style.height = bounds.height + 'px'
 
-        document.getElementById('gobutton').disabled = false
-        let paths = project.getItems({ class: Path })
-        pathLayer = new Layer()
-        dotLayer = new Layer()
-        app.set('path', paths[0])
-    })
+    // Let Paper.js know that the canvas size has changed
+    window.dispatchEvent(new window.Event('resize'))
+
+    document.getElementById('gobutton').disabled = false
+    let paths = project.getItems({ class: Path })
+    pathLayer = new Layer()
+    dotLayer = new Layer()
+    app.set('path', paths[0])
 }
 
 function startAnimation() {
@@ -185,6 +238,8 @@ function renderPath() {
 }
 
 function update(changes={}) {
+    savePropsToStorage()
+
     changed = (...ary) => ary.some(x => x in changes)
 
     if (changed('path')) {
@@ -212,9 +267,9 @@ function update(changes={}) {
             dot.scale(props.dotradius/changes.dotradius)
         }
     }
-    if (changed('speedmul','speeddrop')) {
-        speed = k => 0.1 * props.speedmul / (1 + Math.abs(k*100 * props.speeddrop))
-        app.speed = speed
+    if (changed('speedmul','speeddrop','curvaturezero')) {
+        const threshold = props.curvaturezero
+        speed = k => 0.1 * props.speedmul / (1 + Math.abs(Math.max(0,k*100 - threshold) * props.speeddrop))
     }
 }
 
@@ -266,6 +321,9 @@ class Fn {
             this.values = this.domain.map(values)
         }
     }
+
+    max() { return Math.max(...this.values) }
+    min() { return Math.min(...this.values) }
 
     // Linearly interpolate to approximate the value of this function at x.
     eval(x) {

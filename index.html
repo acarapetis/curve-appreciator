@@ -3,9 +3,9 @@
     <head>
         <title>Bezier Demo</title>
         <!-- custom acorn version to enable ES2015 support in paperscript -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/4.0.11/acorn.js"></script>
-        <script src="https://unpkg.com/paper@0.12.0/dist/paper-full.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/spite/ccapture.js@e66f7bd12c0cfd2c27ce844fcfa8d0dad15ff188/build/CCapture.all.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/acorn/6.2.0/acorn.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.2/paper-full.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/spite/ccapture.js@v1.0.9/build/CCapture.all.min.js"></script>
         <script src="https://d3js.org/d3-array.v2.min.js"></script>
         <style>
             body, html {
@@ -31,6 +31,9 @@
                 background: white;
                 border: 1px solid #ccc;
                 box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            }
+            #controls.hidden main {
+                display: none;
             }
             #controls main {
                 display: flex;
@@ -64,6 +67,10 @@
                 background: #eee;
                 border-bottom: 1px solid #ccc;
             }
+            #controls h2 a {
+                cursor: pointer;
+                text-decoration: underline;
+            }
             input[type=number],
             input[type=checkbox],
             input[type=color] {
@@ -85,11 +92,17 @@
     <body>
         <canvas id=canvas width=720 height=480 resize
             ondrop="app.handleDrop(event)" ondragover="event.preventDefault()"></canvas>
-        <div id=controls style="right:10px; top:10px;" onchange="app.readControl(event.target)" hidden>
+        <div id=controls style="right:10px; top:10px;" onchange="app.readControl(event.target)">
             <h2>
                 Controls
+                <a onclick="document.getElementById('controls').classList.toggle('hidden')">(toggle)</a>
             </h2>
             <main>
+                <div>
+                    <button onclick="app.saveToClipboard()">Copy settings</button>
+                    <button onclick="app.loadFromClipboard()">Paste settings</button>
+                    <button onclick="app.resetConfig()">Reset to defaults</button>
+                </div>
                 <fieldset>
                     <legend>Curvature and Motion</legend>
                     <label>
@@ -107,6 +120,10 @@
                     <label>
                         <input type=number min=0.5 max=10 value=1 step=0.1 name=speeddrop>
                         <span>Speed dropoff</span>
+                    </label>
+                    <label>
+                        <input type=number min=0 max=10 value=0 step=0.1 name=curvaturezero>
+                        <span>Zero Curvature Threshold</span>
                     </label>
                 </fieldset>
                 <fieldset>
