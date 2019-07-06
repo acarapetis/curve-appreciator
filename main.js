@@ -80,11 +80,15 @@ const app = {
 
     setControl(key) {
         const el = document.querySelector(`*[name="${key}"]`)
+        const val = props[key]
         if (el.type == 'checkbox') {
-            el.checked = props[key]
+            el.checked = val
+        }
+        else if (el.type == 'radio') {
+            document.querySelector(`input[name="${key}"][value="${val}"]`).checked = true
         }
         else if ('value' in el) {
-            el.value = props[key]
+            el.value = val
         }
     },
 
