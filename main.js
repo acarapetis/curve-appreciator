@@ -97,10 +97,10 @@ const app = {
     }
 }
 function savePropsToStorage() {
-    localStorage.setItem('curve-appreciator-config', app.save())
+    if (localStorage) localStorage.setItem('curve-appreciator-config', app.save())
 }
 function loadPropsFromStorage() {
-    const conf = localStorage.getItem('curve-appreciator-config')
+    const conf = localStorage && localStorage.getItem('curve-appreciator-config')
     if (conf) {
         app.load(conf)
         return true
@@ -108,7 +108,7 @@ function loadPropsFromStorage() {
     return false
 }
 function resetToDefaults() {
-    localStorage.removeItem('curve-appreciator-config')
+    if (localStorage) localStorage.removeItem('curve-appreciator-config')
     window.location.reload()
 }
 window.app = app // For UI to call app methods
