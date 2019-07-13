@@ -289,7 +289,7 @@ function update(changes={}) {
     }
     if (changed('speedmul','speeddrop','curvaturezero')) {
         const threshold = props.curvaturezero
-        speed = k => 0.1 * props.speedmul / (1 + Math.abs(Math.max(0,k*100 - threshold) * props.speeddrop))
+        speed = k => 0.1 * props.speedmul / (1 + Math.max(0,Math.abs(k)*100 - threshold) * props.speeddrop)
     }
 }
 
