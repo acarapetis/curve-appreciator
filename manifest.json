@@ -1,0 +1,20 @@
+{
+    "short_name": "curve-appreciator",
+    "name": "curve-appreciator",
+    "display": "standalone",
+    "theme_color": "#ffffff",
+    "start_url": "./",
+    "icons": [
+        {
+            "src": "logo144.png",
+            "type": "image/png",
+            "sizes": "144x144"
+        },
+        {
+            "src": "logo512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ]
+}
+
